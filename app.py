@@ -1,67 +1,56 @@
-import turtle
+import streamlit as st
 
-def get_user_input():
-    print("--- AI होम डिज़ाइन असिस्टेंट में आपका स्वागत है ---")
-    
-    # प्लॉट की माप
-    dimensions = {
-        "front": float(input("प्लॉट का फ्रंट (Feet): ")),
-        "back": float(input("प्लॉट का पिछला हिस्सा (Feet): ")),
-        "left": float(input("बाईं दिशा की लंबाई (Feet): ")),
-        "right": float(input("दाईं दिशा की लंबाई (Feet): "))
-    }
-    
-    # ग्राउंड फ्लोर की ज़रूरतें
-    print("\n--- ग्राउंड फ्लोर की जानकारी ---")
-    g_floor = {
-        "rooms": int(input("कितने बेडरूम चाहिए? ")),
-        "bathrooms": int(input("कितने बाथरूम चाहिए? ")),
-        "store": int(input("कितने स्टोर रूम चाहिए? ")),
-        "entrance": input("मेन एंट्रेंस किस दिशा में चाहिए (North/South/East/West)? ")
-    }
-    
-    # फर्स्ट फ्लोर की ज़रूरतें
-    print("\n--- फर्स्ट फ्लोर की जानकारी ---")
-    f_floor = {
-        "rooms": int(input("कितने बेडरूम चाहिए? ")),
-        "balcony": input("क्या बालकनी चाहिए? (Yes/No): ")
-    }
+def main():
+    st.title("🏡 AI इंटरैक्टिव होम डिज़ाइन")
+    st.write("अपने घर की जानकारी भरें और अपना 2D मैप देखें।")
 
-    return dimensions, g_floor, f_floor
+    # 1. चारों दिशाओं की माप
+    st.header("1. प्लॉट की माप (फीट में)")
+    col1, col2 = st.columns(2)
+    with col1:
+        front = st.number_input("फ्रेंट (Front)", min_value=1.0, value=30.0)
+        left = st.number_input("बाईं साइड (Left)", min_value=1.0, value=50.0)
+    with col2:
+        back = st.number_input("पीछे का हिस्सा (Back)", min_value=1.0, value=30.0)
+        right = st.number_input("दाईं साइड (Right)", min_value=1.0, value=50.0)
 
-def draw_2d_map(dims):
-    # यह फंक्शन स्क्रीन पर एक बेसिक 2D आउटलाइन ड्रा करेगा
-    screen = turtle.Screen()
-    screen.title("आपका 2D होम प्लान")
-    t = turtle.Turtle()
+    # 2. कस्टमाइजेशन (सवालात)
+    st.header("2. फ्लोर कस्टमाइजेशन")
     
-    scale = 5  # 1 foot = 5 pixels
+    tab1, tab2 = st.tabs(["ग्राउंड फ्लोर", "फर्स्ट फ्लोर"])
     
-    t.penup()
-    t.goto(-100, 0)
-    t.pendown()
-    
-    # चारों दिशाओं को ड्रा करना
-    t.forward(dims['front'] * scale) # Front
-    t.left(90)
-    t.forward(dims['left'] * scale)  # Left
-    t.left(90)
-    t.forward(dims['back'] * scale)  # Back
-    t.left(90)
-    t.forward(dims['right'] * scale) # Right
-    
-    t.write("आपका प्लॉट एरिया", align="center")
-    print("\n[सफलता] आपका 2D मैप जनरेट हो गया है।")
-    turtle.done()
+    with tab1:
+        g_rooms = st.slider("कितने बेडरूम चाहिए?", 1, 5, 2)
+        g_bath = st.slider("कितने बाथरूम चाहिए?", 1, 4, 1)
+        g_store = st.selectbox("कितने स्टोर रूम?", [0, 1, 2])
+        entrance = st.selectbox("मेन एंट्रेंस की दिशा", ["उत्तर (North)", "दक्षिण (South)", "पूर्व (East)", "पश्चिम (West)"])
 
-# प्रोग्राम शुरू करें
+    with tab2:
+        f_rooms = st.slider("फर्स्ट फ्लोर पर बेडरूम?", 0, 5, 1)
+        balcony = st.radio("क्या बालकनी चाहिए?", ["हाँ", "नहीं"])
+
+    # 3. 2D मैप जनरेट करना (SVG का उपयोग करके)
+    if st.button("अपना होम डिज़ाइन जनरेट करें"):
+        st.success("डिज़ाइन तैयार है!")
+        
+        # स्केल सेट करना (1 फीट = 5 पिक्सल)
+        w = front * 5
+        h = left * 5
+        
+        # एक साधारण नक्शा दिखाना (SVG तकनीक)
+        svg_code = f"""
+        <svg width="{w+40}" height="{h+40}" style="border:2px solid black; background: #f9f9f9;">
+            <rect x="20" y="20" width="{w}" height="{h}" fill="none" stroke="blue" stroke-width="3" />
+            <text x="{w/2}" y="15" fill="black" font-size="12">Front: {front} ft</text>
+            <text x="0" y="{h/2}" fill="black" font-size="12" transform="rotate(-90 10,{h/2})">Side: {left} ft</text>
+            <text x="{w/4}" y="{h/2}" fill="gray" font-size="14">AI Plan: {g_rooms}BHK + {g_store} Store</text>
+        </svg>
+        """
+        st.write("### आपका 2D मैप लेआउट:")
+        st.components.v1.html(svg_code, height=h+100)
+
+        # सारांश
+        st.info(f"नोट: आपकी मुख्य एंट्री {entrance} की दिशा में रखी गई है।")
+
 if __name__ == "__main__":
-    plot_dims, ground, first = get_user_input()
-    
-    print("\n--- डिज़ाइन सारांश ---")
-    print(f"कुल एरिया: {plot_dims['front'] * plot_dims['left']} Sq. Ft. लगभग")
-    print(f"ग्राउंड फ्लोर: {ground['rooms']} BHK + {ground['store']} स्टोर")
-    print(f"एंट्रेंस: {ground['entrance']} की तरफ")
-    
-    # मैप ड्रा करने के लिए
-    draw_2d_map(plot_dims)
+    main()
