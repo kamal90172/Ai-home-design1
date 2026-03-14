@@ -1,35 +1,67 @@
-import streamlit as st
+import turtle
 
-st.set_page_config(page_title="Smart Home Design", layout="wide")
+def get_user_input():
+    print("--- AI होम डिज़ाइन असिस्टेंट में आपका स्वागत है ---")
+    
+    # प्लॉट की माप
+    dimensions = {
+        "front": float(input("प्लॉट का फ्रंट (Feet): ")),
+        "back": float(input("प्लॉट का पिछला हिस्सा (Feet): ")),
+        "left": float(input("बाईं दिशा की लंबाई (Feet): ")),
+        "right": float(input("दाईं दिशा की लंबाई (Feet): "))
+    }
+    
+    # ग्राउंड फ्लोर की ज़रूरतें
+    print("\n--- ग्राउंड फ्लोर की जानकारी ---")
+    g_floor = {
+        "rooms": int(input("कितने बेडरूम चाहिए? ")),
+        "bathrooms": int(input("कितने बाथरूम चाहिए? ")),
+        "store": int(input("कितने स्टोर रूम चाहिए? ")),
+        "entrance": input("मेन एंट्रेंस किस दिशा में चाहिए (North/South/East/West)? ")
+    }
+    
+    # फर्स्ट फ्लोर की ज़रूरतें
+    print("\n--- फर्स्ट फ्लोर की जानकारी ---")
+    f_floor = {
+        "rooms": int(input("कितने बेडरूम चाहिए? ")),
+        "balcony": input("क्या बालकनी चाहिए? (Yes/No): ")
+    }
 
-st.title("🏗️ Advanced Smart Home Planner")
-st.write("अपने प्लॉट की डिटेल्स भरें और प्रोफेशनल नक्शा व बजट देखें।")
+    return dimensions, g_floor, f_floor
 
-# Sidebar for inputs
-st.sidebar.header("🏠 प्लॉट की जानकारी")
-length = st.sidebar.number_input("प्लॉट की लंबाई (फीट में)", min_value=10, value=35)
-width = st.sidebar.number_input("प्लॉट की चौड़ाई (फीट में)", min_value=10, value=30)
-floors = st.sidebar.selectbox("कितने फ्लोर?", [1, 2, 3])
+def draw_2d_map(dims):
+    # यह फंक्शन स्क्रीन पर एक बेसिक 2D आउटलाइन ड्रा करेगा
+    screen = turtle.Screen()
+    screen.title("आपका 2D होम प्लान")
+    t = turtle.Turtle()
+    
+    scale = 5  # 1 foot = 5 pixels
+    
+    t.penup()
+    t.goto(-100, 0)
+    t.pendown()
+    
+    # चारों दिशाओं को ड्रा करना
+    t.forward(dims['front'] * scale) # Front
+    t.left(90)
+    t.forward(dims['left'] * scale)  # Left
+    t.left(90)
+    t.forward(dims['back'] * scale)  # Back
+    t.left(90)
+    t.forward(dims['right'] * scale) # Right
+    
+    t.write("आपका प्लॉट एरिया", align="center")
+    print("\n[सफलता] आपका 2D मैप जनरेट हो गया है।")
+    turtle.done()
 
-area = length * width
-
-# Budget Calculation Logic
-st.subheader("💰 निर्माण लागत का अनुमान (Estimated Budget)")
-rate_per_sqft = 1600 # Average rate in Haryana/North India
-total_cost = area * floors * rate_per_sqft
-
-col1, col2, col3 = st.columns(3)
-col1.metric("कुल एरिया", f"{area} Sq.Ft")
-col2.metric("अनुमानित बजट", f"₹{total_cost:,}")
-col3.metric("मैटेरियल क्वालिटी", "A-Grade")
-
-# Simple 2D Map Visualization
-st.subheader("🗺️ प्रस्तावित लेआउट (Provisional Map)")
-# यहाँ हम एक बॉक्स बनाकर दिखा रहे हैं जो प्लॉट को दर्शाता है
-st.markdown(f"""
-<div style="border: 5px solid #4CAF50; width: {width*5}px; height: {length*5}px; background-color: #f1f1f1; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
-    <p style="text-align: center;"><b>{width}' x {length}' का प्लॉट</b><br>सामने का हिस्सा (Front)</p>
-</div>
-""", unsafe_allow_html=True)
-
-st.info("नोट: यह एक ऑटो-जेनरेटेड अनुमान है। असली निर्माण से पहले इंजीनियर से सलाह लें।")
+# प्रोग्राम शुरू करें
+if __name__ == "__main__":
+    plot_dims, ground, first = get_user_input()
+    
+    print("\n--- डिज़ाइन सारांश ---")
+    print(f"कुल एरिया: {plot_dims['front'] * plot_dims['left']} Sq. Ft. लगभग")
+    print(f"ग्राउंड फ्लोर: {ground['rooms']} BHK + {ground['store']} स्टोर")
+    print(f"एंट्रेंस: {ground['entrance']} की तरफ")
+    
+    # मैप ड्रा करने के लिए
+    draw_2d_map(plot_dims)
